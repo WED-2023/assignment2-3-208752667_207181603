@@ -1,1 +1,2 @@
-SELECT * FROM mydb.users;
+-- SQLBook: Code
+SELECT * FROM DB.users;
