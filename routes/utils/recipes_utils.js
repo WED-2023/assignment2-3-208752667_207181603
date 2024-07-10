@@ -81,5 +81,5 @@ async function getRandomRecipes(number) {
 exports.getRecipeDetails = getRecipeDetails;
 exports.searchRecipe = searchRecipe;
 exports.getRandomRecipes = getRandomRecipes;
-
+exports.getRecipesPreview = getRecipesPreview;
 

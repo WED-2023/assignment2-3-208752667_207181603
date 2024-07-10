@@ -4,14 +4,16 @@ const DButils = require("./utils/DButils");
 const user_utils = require("./utils/user_utils");
 const recipe_utils = require("./utils/recipes_utils");
 
+// router.get("/", (req, res) => res.send("I'm alive"));
+
 /**
  * Authenticate all incoming requests by middleware
  */
 router.use(async function (req, res, next) {
-  if (req.session && req.session.user_id) {
-    DButils.execQuery("SELECT user_id FROM users").then((users) => {
-      if (users.find((x) => x.user_id === req.session.user_id)) {
-        req.user_id = req.session.user_id;
+  if (req.session && req.session.username) {
+    DButils.execQuery("SELECT username FROM users").then((users) => {
+      if (users.find((x) => x.username === req.session.username)) {
+        req.username = req.session.username;
         next();
       }
     }).catch(err => next(err));
@@ -20,39 +22,48 @@ router.use(async function (req, res, next) {
   }
 });
 
-
 /**
  * This path gets body with recipeId and save this recipe in the favorites list of the logged-in user
  */
-router.post('/favorites', async (req,res,next) => {
-  try{
-    const user_id = req.session.user_id;
-    const recipe_id = req.body.recipeId;
-    await user_utils.markAsFavorite(user_id,recipe_id);
-    res.status(200).send("The Recipe successfully saved as favorite");
-    } catch(error){
-    next(error);
-  }
-})
+router.post('/favorites', async (req, res) => {
+  try {
+    const username = req.session.username;
+    const recipeID = req.body.recipeID;
+    const favoriteRecipes = await user_utils.getFavoriteRecipes(username);
 
-/**
- * This path returns the favorites recipes that were saved by the logged-in user
- */
-router.get('/favorites', async (req,res,next) => {
-  try{
-    const user_id = req.session.user_id;
-    let favorite_recipes = {};
-    const recipes_id = await user_utils.getFavoriteRecipes(user_id);
-    let recipes_id_array = [];
-    recipes_id.map((element) => recipes_id_array.push(element.recipe_id)); //extracting the recipe ids into array
-    const results = await recipe_utils.getRecipesPreview(recipes_id_array);
-    res.status(200).send(results);
-  } catch(error){
-    next(error); 
+    // Ensure recipeID is of the same type for comparison
+    const recipeIDNumber = Number(recipeID);
+
+    const isFavorite = favoriteRecipes.some((recipe) => Number(recipe.recipeID) === recipeIDNumber);
+
+    if (isFavorite) {
+      await user_utils.unMarkAsFavorite(recipeID, username);
+      res.status(200).send({ message: "The Recipe successfully removed from favorites", success: true });
+    } else {
+      await user_utils.markAsFavorite(recipeID, username);
+      res.status(200).send({ message: "The Recipe successfully saved as favorites", success: true });
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({ message: "Failed to toggle favorite mark of the recipe.", success: false });
   }
 });
 
 
+/**
+ * This path returns the favorites recipes that were saved by the logged-in user
+ */
+router.get('/favorites', async (req,res) => {
+  try{
+    const username = req.session.username;
+    const recipesID = await user_utils.getFavoriteRecipes(username);
+    const recipesPreview = await recipe_utils.getRecipesPreview(recipesID.map((recipe) => recipe.recipeID));
+    res.status(200).send(recipesPreview);
+  } catch(error){
+    console.log(error);
+    res.status(400).send({ message: "Failed to get favorite recipes.", success: false });
+  }
+});
 
 
 module.exports = router;
