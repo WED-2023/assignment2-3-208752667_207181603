@@ -25,17 +25,21 @@ async function getRecipeInformation(recipe_id) {
 
 async function getRecipeDetails(recipe_id) {
     let recipe_info = await getRecipeInformation(recipe_id);
-    let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = recipe_info.data;
+    let { id, title, readyInMinutes, servings, image, aggregateLikes, vegan, vegetarian, glutenFree, summary } = recipe_info.data;
+
+    let plainSummary = summary.replace(/<\/?[^>]+(>|$)/g, "");
 
     return {
         id: id,
         title: title,
         readyInMinutes: readyInMinutes,
+        servings: servings,
         image: image,
         popularity: aggregateLikes,
         vegan: vegan,
         vegetarian: vegetarian,
         glutenFree: glutenFree,
+        summary: plainSummary
     };
 }
 

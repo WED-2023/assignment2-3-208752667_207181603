@@ -28,10 +28,8 @@ router.post("/Register", async (req, res) => {
       parseInt(process.env.bcrypt_saltRounds)
     );
     await DButils.execQuery(
-      `INSERT INTO users VALUES ('${user_details.username}', '${user_details.firstName}', '${user_details.lastName}',
-      '${user_details.country}', '${hash_password}', '${user_details.email}')`
-    );
-    res.status(201).send({ message: "user created", success: true });
+      `INSERT INTO users VALUES ('${user_details.username}', '${user_details.firstName}', '${user_details.lastName}','${user_details.country}', '${hash_password}', '${user_details.email}')`);
+    res.status(200).send({ message: "user created", success: true });
   } catch (error) {
     console.log(error);
     res.status(400).send({ message: "Failed to create account with the given details.", success: false });
@@ -43,7 +41,7 @@ router.post("/Login", async (req, res) => {
     // check that username exists
     const users = await DButils.execQuery("SELECT username FROM users");
     if (!users.find((x) => x.username === req.body.username)){
-      res.status(401).send({ message: "Incorrect Username or  Password", success: false });
+      res.status(401).send({ message: "Incorrect username or password", success: false });
       return;
     }
 
@@ -55,7 +53,7 @@ router.post("/Login", async (req, res) => {
     )[0];
 
     if (!bcrypt.compareSync(req.body.password, user.password)) {
-      res.status(401).send({ message: "Incorrect Username or Password", success: false });
+      res.status(401).send({ message: "Incorrect username or password", success: false });
       return;
     }
 

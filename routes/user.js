@@ -81,15 +81,10 @@ router.post('/recipes', async (req, res) => {
     }
 
     res.status(201).send({
-      message: "Recipe created successfully",
-      recipe: {
-        image, title, readyInMinutes, servings, vegetarian,
-        vegan, glutenFree, familyRecipe, summary, ingredients, instructions
-      }
-    });
+      message: "Recipe created successfully", success: true});
   } catch (error) {
     console.log(error);
-    res.status(400).send({error: "Failed to create recipe"});
+    res.status(400).send({error: "Failed to create recipe", success: false});
   }
 });
 
@@ -105,7 +100,7 @@ router.get('/family', async (req, res) => {
   }
 });
 
-router.get('/myOwn', async (req, res) => {
+router.get('/recipes', async (req, res) => {
   try {
     const username = req.session.username;
     const recipesID = await user_utils.getUserRecipe(username);
