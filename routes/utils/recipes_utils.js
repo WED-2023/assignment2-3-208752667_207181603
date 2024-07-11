@@ -1,6 +1,7 @@
 const axios = require("axios");
+const DButils = require("./DButils");
 const api_domain = "https://api.spoonacular.com/recipes";
-
+const apiKey = "5a4b29bb8f6646e5939b6489479feb97"
 
 
 /**
@@ -10,10 +11,12 @@ const api_domain = "https://api.spoonacular.com/recipes";
 
 
 async function getRecipeInformation(recipe_id) {
+    console.log(process.env.spooncular_apiKey);
     return await axios.get(`${api_domain}/${recipe_id}/information`, {
         params: {
             includeNutrition: false,
-            apiKey: process.env.spooncular_apiKey
+            // apiKey: process.env.spooncular_apiKey
+            apiKey: apiKey
         }
     });
 }
@@ -42,6 +45,34 @@ async function getRecipesPreview(recipes_info) {
     return recipesDetails;
 }
 
+async function getRecipesPreviewFromDB(recipeIDs) {
+    if (!Array.isArray(recipeIDs) || recipeIDs.length === 0) {
+        return [];
+    }
+
+    try {
+        const query = `
+      SELECT recipeID, image, title, readyInMinutes, dishes, vegetarian, vegan, glutenFree, summary, ingredients, instructions FROM recipes WHERE recipeID IN (${recipeIDs.join(",")})`;
+        const recipes = await DButils.execQuery(query);
+        return recipes.map(recipe => ({
+            recipeID: recipe.recipeID,
+            image: recipe.image,
+            title: recipe.title,
+            readyInMinutes: recipe.readyInMinutes,
+            servings: recipe.dishes,
+            vegetarian: recipe.vegetarian,
+            vegan: recipe.vegan,
+            glutenFree: recipe.glutenFree,
+            summary: recipe.summary,
+            ingredients: recipe.ingredients,
+            instructions: recipe.instructions
+        }));
+    } catch (error) {
+        console.error('Error retrieving recipes preview:', error);
+        throw error;
+    }
+}
+
 
 async function searchRecipe(recipeName, cuisine, diet, intolerance, number) {
     const response = await axios.get(`${api_domain}/complexSearch`, {
@@ -62,7 +93,8 @@ async function getRandomRecipes(number) {
         const response = await axios.get(`${api_domain}/random`, {
             params: {
                 number: number,
-                apiKey: process.env.spooncular_apiKey
+                // apiKey: process.env.spooncular_apiKey
+                apiKey: apiKey
             }
         });
 
@@ -82,4 +114,4 @@ exports.getRecipeDetails = getRecipeDetails;
 exports.searchRecipe = searchRecipe;
 exports.getRandomRecipes = getRandomRecipes;
 exports.getRecipesPreview = getRecipesPreview;
-
+exports.getRecipesPreviewFromDB = getRecipesPreviewFromDB;

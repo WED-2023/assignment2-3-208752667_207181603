@@ -31,7 +31,6 @@ router.post('/favorites', async (req, res) => {
     const recipeID = req.body.recipeID;
     const favoriteRecipes = await user_utils.getFavoriteRecipes(username);
 
-    // Ensure recipeID is of the same type for comparison
     const recipeIDNumber = Number(recipeID);
 
     const isFavorite = favoriteRecipes.some((recipe) => Number(recipe.recipeID) === recipeIDNumber);
@@ -65,5 +64,57 @@ router.get('/favorites', async (req,res) => {
   }
 });
 
+
+router.post('/recipes', async (req, res) => {
+  try {
+    const username = req.session.username;
+    const recipeID = await user_utils.getNextRecipeID();
+
+    const {image, title, readyInMinutes, servings, vegetarian, vegan, glutenFree, familyRecipe, summary, ingredients, instructions} = req.body;
+
+    await user_utils.createRecipe(recipeID, image, title, readyInMinutes, servings, vegetarian, vegan, glutenFree, summary, ingredients, instructions);
+
+    await user_utils.addUserRecipe(recipeID, username);
+
+    if (familyRecipe === true) {
+      await user_utils.addFamilyRecipe(recipeID, username);
+    }
+
+    res.status(201).send({
+      message: "Recipe created successfully",
+      recipe: {
+        image, title, readyInMinutes, servings, vegetarian,
+        vegan, glutenFree, familyRecipe, summary, ingredients, instructions
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({error: "Failed to create recipe"});
+  }
+});
+
+router.get('/family', async (req, res) => {
+  try {
+    const username = req.session.username;
+    const recipesID = await user_utils.getFamilyRecipe(username);
+    const recipesPreview = await recipe_utils.getRecipesPreviewFromDB(recipesID.map((recipe) => recipe.recipeID));
+    res.status(200).send(recipesPreview);
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({ message: "Failed to get family recipes.", success: false });
+  }
+});
+
+router.get('/myOwn', async (req, res) => {
+  try {
+    const username = req.session.username;
+    const recipesID = await user_utils.getUserRecipe(username);
+    const recipesPreview = await recipe_utils.getRecipesPreviewFromDB(recipesID.map((recipe) => recipe.recipeID));
+    res.status(200).send(recipesPreview);
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({ message: "Failed to get the user's recipes.", success: false });
+  }
+});
 
 module.exports = router;
