@@ -4,7 +4,7 @@ const MySql = require("../routes/utils/MySql");
 const DButils = require("../routes/utils/DButils");
 const bcrypt = require("bcrypt");
 
-router.post("/Register", async (req, res, next) => {
+router.post("/Register", async (req, res) => {
   try {
     let user_details = {
       username: req.body.username,
@@ -38,7 +38,7 @@ router.post("/Register", async (req, res, next) => {
   }
 });
 
-router.post("/Login", async (req, res, next) => {
+router.post("/Login", async (req, res) => {
   try {
     // check that username exists
     const users = await DButils.execQuery("SELECT username FROM users");
