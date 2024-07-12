@@ -5,23 +5,23 @@ async function markAsFavorite(recipeID, username){
 }
 
 async function unMarkAsFavorite(recipeID, username){
-    await DButils.execQuery(`DELETE from favoriteRecipes WHERE recipeID=${recipeID} AND username='${username}'`);
+    await DButils.execQuery(`DELETE from favoriteRecipes WHERE id=${recipeID} AND username='${username}'`);
 }
 
 async function getFavoriteRecipes(username){
-    const recipesId = await DButils.execQuery(`SELECT recipeID from favoriteRecipes where username='${username}'`);
+    const recipesId = await DButils.execQuery(`SELECT id from favoriteRecipes where username='${username}'`);
     return recipesId;
 }
 
 async function getNextRecipeID() {
-    const result = await DButils.execQuery(`SELECT COALESCE(MIN(recipeID), 0) AS minRecipeID FROM recipes`);
+    const result = await DButils.execQuery(`SELECT COALESCE(MIN(id), 0) AS minRecipeID FROM recipes`);
     const minRecipeID = result[0].minRecipeID;
     const newID = minRecipeID === 0 ? -1 : minRecipeID - 1;
     return newID;
 }
 
 async function createRecipe(recipeID, image, title, readyInMinutes, servings, vegetarian, vegan, glutenFree, summary, ingredients, instructions) {
-    const query = `INSERT INTO recipes (recipeID, image, title, readyInMinutes, dishes, vegetarian, vegan, glutenFree, summary, ingredients, instructions) VALUES (${recipeID}, '${image}', '${title}', ${readyInMinutes}, ${servings}, ${vegetarian ? 1 : 0}, ${vegan ? 1 : 0}, ${glutenFree ? 1 : 0}, '${summary}', '${JSON.stringify(ingredients)}', '${JSON.stringify(instructions)}')`;
+    const query = `INSERT INTO recipes (id, image, title, readyInMinutes, servings, vegetarian, vegan, glutenFree, summary, extendedIngredients, analyzedInstructions) VALUES (${recipeID}, '${image}', '${title}', ${readyInMinutes}, ${servings}, ${vegetarian ? 1 : 0}, ${vegan ? 1 : 0}, ${glutenFree ? 1 : 0}, '${summary}', '${JSON.stringify(ingredients)}', '${JSON.stringify(instructions)}')`;
 
     await DButils.execQuery(query);
 }
@@ -35,12 +35,12 @@ async function addUserRecipe(recipeID, username) {
 }
 
 async function getFamilyRecipe(username) {
-    const recipesID = await DButils.execQuery(`SELECT recipeID from familyRecipes where username='${username}'`);
+    const recipesID = await DButils.execQuery(`SELECT id from familyRecipes where username='${username}'`);
     return recipesID;
 }
 
 async function getUserRecipe(username) {
-    const recipesID = await DButils.execQuery(`SELECT recipeID from userRecipes where username='${username}'`);
+    const recipesID = await DButils.execQuery(`SELECT id from userRecipes where username='${username}'`);
     return recipesID;
 }
 

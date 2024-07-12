@@ -28,18 +28,18 @@ router.use(async function (req, res, next) {
 router.post('/favorites', async (req, res) => {
   try {
     const username = req.session.username;
-    const recipeID = req.body.recipeID;
+    const id = req.body.id;
     const favoriteRecipes = await user_utils.getFavoriteRecipes(username);
 
-    const recipeIDNumber = Number(recipeID);
+    const recipeIDNumber = Number(id);
 
-    const isFavorite = favoriteRecipes.some((recipe) => Number(recipe.recipeID) === recipeIDNumber);
+    const isFavorite = favoriteRecipes.some((recipe) => Number(recipe.id) === recipeIDNumber);
 
     if (isFavorite) {
-      await user_utils.unMarkAsFavorite(recipeID, username);
+      await user_utils.unMarkAsFavorite(id, username);
       res.status(200).send({ message: "The Recipe successfully removed from favorites", success: true });
     } else {
-      await user_utils.markAsFavorite(recipeID, username);
+      await user_utils.markAsFavorite(id, username);
       res.status(200).send({ message: "The Recipe successfully saved as favorites", success: true });
     }
   } catch (error) {
@@ -56,7 +56,7 @@ router.get('/favorites', async (req,res) => {
   try{
     const username = req.session.username;
     const recipesID = await user_utils.getFavoriteRecipes(username);
-    const recipesPreview = await recipe_utils.getRecipesPreview(recipesID.map((recipe) => recipe.recipeID));
+    const recipesPreview = await recipe_utils.getRecipesPreview(recipesID.map((recipe) => recipe.id));
     res.status(200).send(recipesPreview);
   } catch(error){
     console.log(error);
@@ -68,16 +68,15 @@ router.get('/favorites', async (req,res) => {
 router.post('/recipes', async (req, res) => {
   try {
     const username = req.session.username;
-    const recipeID = await user_utils.getNextRecipeID();
+    const id = await user_utils.getNextRecipeID();
+    const {image, title, readyInMinutes, servings, vegetarian, vegan, glutenFree, familyRecipe, summary, extendedIngredients, analyzedInstructions} = req.body;
 
-    const {image, title, readyInMinutes, servings, vegetarian, vegan, glutenFree, familyRecipe, summary, ingredients, instructions} = req.body;
+    await user_utils.createRecipe(id, image, title, readyInMinutes, servings, vegetarian, vegan, glutenFree, summary, extendedIngredients, analyzedInstructions);
 
-    await user_utils.createRecipe(recipeID, image, title, readyInMinutes, servings, vegetarian, vegan, glutenFree, summary, ingredients, instructions);
-
-    await user_utils.addUserRecipe(recipeID, username);
+    await user_utils.addUserRecipe(id, username);
 
     if (familyRecipe === true) {
-      await user_utils.addFamilyRecipe(recipeID, username);
+      await user_utils.addFamilyRecipe(id, username);
     }
 
     res.status(201).send({
@@ -92,7 +91,7 @@ router.get('/family', async (req, res) => {
   try {
     const username = req.session.username;
     const recipesID = await user_utils.getFamilyRecipe(username);
-    const recipesPreview = await recipe_utils.getRecipesPreviewFromDB(recipesID.map((recipe) => recipe.recipeID));
+    const recipesPreview = await recipe_utils.getRecipesPreview(recipesID.map((recipe) => recipe.id));
     res.status(200).send(recipesPreview);
   } catch (error) {
     console.log(error);
@@ -104,7 +103,7 @@ router.get('/recipes', async (req, res) => {
   try {
     const username = req.session.username;
     const recipesID = await user_utils.getUserRecipe(username);
-    const recipesPreview = await recipe_utils.getRecipesPreviewFromDB(recipesID.map((recipe) => recipe.recipeID));
+    const recipesPreview = await recipe_utils.getRecipesPreview(recipesID.map((recipe) => recipe.id));
     res.status(200).send(recipesPreview);
   } catch (error) {
     console.log(error);

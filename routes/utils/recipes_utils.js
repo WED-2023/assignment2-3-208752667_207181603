@@ -1,7 +1,7 @@
 const axios = require("axios");
 const DButils = require("./DButils");
 const api_domain = "https://api.spoonacular.com/recipes";
-const apiKey = "5a4b29bb8f6646e5939b6489479feb97"
+const apiKey = "bf166c02e25c4d8db6cb98913137d22d"
 
 
 /**
@@ -11,7 +11,6 @@ const apiKey = "5a4b29bb8f6646e5939b6489479feb97"
 
 
 async function getRecipeInformation(recipe_id) {
-    console.log(process.env.spooncular_apiKey);
     return await axios.get(`${api_domain}/${recipe_id}/information`, {
         params: {
             includeNutrition: false,
@@ -19,13 +18,27 @@ async function getRecipeInformation(recipe_id) {
             apiKey: apiKey
         }
     });
+    // TODO - ADD INSTRUCTIONS?
 }
 
-
+async function getAmountLikes(recipe_id) {
+    const query = `SELECT COUNT(id) AS count FROM favoriteRecipes WHERE id = ${recipe_id}`;
+    const result = await DButils.execQuery(query);
+    return result[0].count;
+}
 
 async function getRecipeDetails(recipe_id) {
-    let recipe_info = await getRecipeInformation(recipe_id);
-    let { id, title, readyInMinutes, servings, image, aggregateLikes, vegan, vegetarian, glutenFree, summary } = recipe_info.data;
+    let recipe_info;
+    if(recipe_id >= 0){
+        recipe_info = (await getRecipeInformation(recipe_id)).data;   
+    }
+    else{
+        let nestedRecipe = await getRecipesPreviewFromDB([recipe_id]);
+        recipe_info = nestedRecipe[0];
+        
+    }
+    let {id, title, readyInMinutes, servings, image, aggregateLikes, vegan, vegetarian, glutenFree, summary, extendedIngredients, analyzedInstructions} = recipe_info;
+    aggregateLikes = aggregateLikes + (await getAmountLikes(id));
 
     let plainSummary = summary.replace(/<\/?[^>]+(>|$)/g, "");
 
@@ -35,16 +48,18 @@ async function getRecipeDetails(recipe_id) {
         readyInMinutes: readyInMinutes,
         servings: servings,
         image: image,
-        popularity: aggregateLikes,
+        aggregateLikes: aggregateLikes,
         vegan: vegan,
         vegetarian: vegetarian,
         glutenFree: glutenFree,
-        summary: plainSummary
+        summary: plainSummary,
+        extendedIngredients: extendedIngredients,
+        analyzedInstructions: analyzedInstructions
     };
 }
 
 async function getRecipesPreview(recipes_info) {
-    let recipesDetailsPromises = recipes_info.map(async recipe_id => await getRecipeDetails(recipe_id));
+    let recipesDetailsPromises = recipes_info.map(async id => await getRecipeDetails(id));
     let recipesDetails = await Promise.all(recipesDetailsPromises);
     return recipesDetails;
 }
@@ -56,20 +71,21 @@ async function getRecipesPreviewFromDB(recipeIDs) {
 
     try {
         const query = `
-      SELECT recipeID, image, title, readyInMinutes, dishes, vegetarian, vegan, glutenFree, summary, ingredients, instructions FROM recipes WHERE recipeID IN (${recipeIDs.join(",")})`;
+      SELECT id, image, title, readyInMinutes, servings, vegetarian, vegan, glutenFree, summary, extendedIngredients, analyzedInstructions FROM recipes WHERE id IN (${recipeIDs.join(",")})`;
         const recipes = await DButils.execQuery(query);
         return recipes.map(recipe => ({
-            recipeID: recipe.recipeID,
+            id: recipe.id,
             image: recipe.image,
+            aggregateLikes: -120,
             title: recipe.title,
             readyInMinutes: recipe.readyInMinutes,
-            servings: recipe.dishes,
+            servings: recipe.servings,
             vegetarian: recipe.vegetarian,
             vegan: recipe.vegan,
             glutenFree: recipe.glutenFree,
             summary: recipe.summary,
-            ingredients: recipe.ingredients,
-            instructions: recipe.instructions
+            extendedIngredients: recipe.extendedIngredients,
+            analyzedInstructions: recipe.analyzedInstructions
         }));
     } catch (error) {
         console.error('Error retrieving recipes preview:', error);
@@ -86,7 +102,8 @@ async function searchRecipe(recipeName, cuisine, diet, intolerance, number) {
             diet: diet,
             intolerances: intolerance,
             number: number,
-            apiKey: process.env.spooncular_apiKey
+            // apiKey: process.env.spooncular_apiKey
+            apiKey: apiKey
         }
     });
     return getRecipesPreview(response.data.results.map((element) => element.id));

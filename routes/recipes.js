@@ -2,8 +2,6 @@ var express = require("express");
 var router = express.Router();
 const recipes_utils = require("./utils/recipes_utils");
 
-router.get("/", (req, res) => res.send("I'm alive"));
-
 /**
  * This path is for searching a recipe
  */
