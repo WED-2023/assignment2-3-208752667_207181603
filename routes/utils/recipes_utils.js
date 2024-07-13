@@ -76,13 +76,13 @@ async function getRecipesPreviewFromDB(recipeIDs) {
         return recipes.map(recipe => ({
             id: recipe.id,
             image: recipe.image,
-            aggregateLikes: -120,
+            aggregateLikes: 0,
             title: recipe.title,
             readyInMinutes: recipe.readyInMinutes,
             servings: recipe.servings,
-            vegetarian: recipe.vegetarian,
-            vegan: recipe.vegan,
-            glutenFree: recipe.glutenFree,
+            vegetarian: (recipe.vegetarian === 1),
+            vegan: (recipe.vegan === 1),
+            glutenFree: (recipe.glutenFree === 1),
             summary: recipe.summary,
             extendedIngredients: recipe.extendedIngredients,
             analyzedInstructions: recipe.analyzedInstructions

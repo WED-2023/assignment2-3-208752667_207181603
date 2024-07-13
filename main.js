@@ -81,6 +81,11 @@ app.use("/users", user);
 app.use("/recipes", recipes);
 app.use(auth);
 
+// Serve index.html for all other routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../assignment2-1-208752667_207181603/dist/index.html'));
+});
+
 // Default router
 app.use(function (err, req, res, next) {
   console.error(err);

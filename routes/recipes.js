@@ -5,20 +5,20 @@ const recipes_utils = require("./utils/recipes_utils");
 /**
  * This path is for searching a recipe
  */
-router.get("/search", async (req, res) => {
-  try {
-    const recipeName = req.query.recipeName;
-    const cuisine = req.query.cuisine;
-    const diet = req.query.diet;
-    const intolerance = req.query.intolerance;
-    const number = req.query.number;
-    const results = await recipes_utils.searchRecipe(recipeName, cuisine, diet, intolerance, number);
-    res.status(200).send(results);
-  } catch (error) {
-    console.log(error);
-    res.status(400).send({ message: "Failed to search the recipe with the given details.", success: false });
-  }
-});
+// router.get("/search", async (req, res) => {
+//   try {
+//     const recipeName = req.query.recipeName;
+//     const cuisine = req.query.cuisine;
+//     const diet = req.query.diet;
+//     const intolerance = req.query.intolerance;
+//     const number = req.query.number;
+//     const results = await recipes_utils.searchRecipe(recipeName, cuisine, diet, intolerance, number);
+//     res.status(200).send(results);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(400).send({ message: "Failed to search the recipe with the given details.", success: false });
+//   }
+// });
 
 /**
  * This path returns a full details of a recipe by its id
@@ -26,7 +26,8 @@ router.get("/search", async (req, res) => {
 router.get("/:recipeId", async (req, res) => {
   try {
     const recipe = await recipes_utils.getRecipeDetails(req.params.recipeId);
-    res.status(200).send(recipe);
+    console.log(recipe);
+    res.status(200).send({recipe: recipe, success: true});
   } catch (error) {
     console.log(error);
     res.status(400).send({ message: "Failed to retrive the recipe with the given details.", success: false });
@@ -36,6 +37,7 @@ router.get("/:recipeId", async (req, res) => {
 router.get("/random/:number", async (req, res) => {
   try {
     const recipes = await recipes_utils.getRandomRecipes(req.params.number);
+    // console.log(recipes);
     res.status(200).send(recipes);
   } catch (error) {
     console.error(error);

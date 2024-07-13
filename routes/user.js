@@ -4,7 +4,6 @@ const DButils = require("./utils/DButils");
 const user_utils = require("./utils/user_utils");
 const recipe_utils = require("./utils/recipes_utils");
 
-// router.get("/", (req, res) => res.send("I'm alive"));
 
 /**
  * Authenticate all incoming requests by middleware
@@ -61,6 +60,31 @@ router.get('/favorites', async (req,res) => {
   } catch(error){
     console.log(error);
     res.status(400).send({ message: "Failed to get favorite recipes.", success: false });
+  }
+});
+
+/**
+ * This path returns if a recipe is saved by the logged-in user
+ */
+router.get('/favorites/:id', async (req,res) => {
+  try {
+    const username = req.session.username;
+
+    if (!username) {
+      return res.status(400).send({ message: "User not logged in.", success: false });
+    }
+
+    const recipesID = await user_utils.getFavoriteRecipes(username);
+    let inFavorites = false;
+
+    const recipeId = parseInt(req.params.id, 10); // Ensure the ID is treated as a number
+    if (recipesID.find((recipe) => recipe.id === recipeId)) {
+      inFavorites = true;
+    }
+    res.status(200).send(inFavorites);
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({ message: "Failed to find the requested recipe.", success: false });
   }
 });
 
