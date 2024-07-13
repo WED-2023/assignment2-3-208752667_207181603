@@ -1,15 +1,15 @@
 const DButils = require("./DButils");
 
-async function markAsFavorite(recipeID, username){
-    await DButils.execQuery(`INSERT into favoriteRecipes values (${recipeID},'${username}')`);
+async function markAsFavorite(recipeID, username) {
+    await DButils.execQuery(`INSERT into favoriterecipes values (${recipeID},'${username}')`);
 }
 
-async function unMarkAsFavorite(recipeID, username){
-    await DButils.execQuery(`DELETE from favoriteRecipes WHERE id=${recipeID} AND username='${username}'`);
+async function unMarkAsFavorite(recipeID, username) {
+    await DButils.execQuery(`DELETE from favoriterecipes WHERE id=${recipeID} AND username='${username}'`);
 }
 
-async function getFavoriteRecipes(username){
-    const recipesId = await DButils.execQuery(`SELECT id from favoriteRecipes where username='${username}'`);
+async function getFavoriteRecipes(username) {
+    const recipesId = await DButils.execQuery(`SELECT id from favoriterecipes where username='${username}'`);
     return recipesId;
 }
 
@@ -27,20 +27,20 @@ async function createRecipe(recipeID, image, title, readyInMinutes, servings, ve
 }
 
 async function addFamilyRecipe(recipeID, username) {
-    await DButils.execQuery(`INSERT into familyRecipes values (${recipeID},'${username}')`);
+    await DButils.execQuery(`INSERT into familyrecipes values (${recipeID},'${username}')`);
 }
 
 async function addUserRecipe(recipeID, username) {
-    await DButils.execQuery(`INSERT into userRecipes values (${recipeID},'${username}')`);
+    await DButils.execQuery(`INSERT into userrecipes values (${recipeID},'${username}')`);
 }
 
 async function getFamilyRecipe(username) {
-    const recipesID = await DButils.execQuery(`SELECT id from familyRecipes where username='${username}'`);
+    const recipesID = await DButils.execQuery(`SELECT id from familyrecipes where username='${username}'`);
     return recipesID;
 }
 
 async function getUserRecipe(username) {
-    const recipesID = await DButils.execQuery(`SELECT id from userRecipes where username='${username}'`);
+    const recipesID = await DButils.execQuery(`SELECT id from userrecipes where username='${username}'`);
     return recipesID;
 }
 

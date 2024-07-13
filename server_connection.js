@@ -1,6 +1,6 @@
 var path = require("path");
 var app = require('./main');
-var https = require('http');
+var https = require('https');
 var fs = require('fs');
 
 var httpsOptions = {

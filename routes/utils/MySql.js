@@ -4,10 +4,10 @@ require("dotenv").config();
 
 const config = {
   connectionLimit: 4,
-  host: "localhost",//process.env.host
-  user: "root",//process.env.user
-  password: "12345678",
-  database: "DB"
+  host: process.env.VUE_APP_host,//"localhost"
+  user: process.env.VUE_APP_user,//"root"
+  password: process.env.VUE_APP_DB_PASSWORD,
+  database: process.env.VUE_APP_DB_NAME
 }
 const pool = new mysql.createPool(config);
 

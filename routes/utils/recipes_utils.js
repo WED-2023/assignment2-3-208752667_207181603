@@ -22,7 +22,7 @@ async function getRecipeInformation(recipe_id) {
 }
 
 async function getAmountLikes(recipe_id) {
-    const query = `SELECT COUNT(id) AS count FROM favoriteRecipes WHERE id = ${recipe_id}`;
+    const query = `SELECT COUNT(id) AS count FROM favoriterecipes WHERE id = ${recipe_id}`;
     const result = await DButils.execQuery(query);
     return result[0].count;
 }
