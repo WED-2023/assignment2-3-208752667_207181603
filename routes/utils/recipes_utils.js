@@ -1,7 +1,7 @@
 const axios = require("axios");
 const DButils = require("./DButils");
 const api_domain = "https://api.spoonacular.com/recipes";
-const apiKey = "bf166c02e25c4d8db6cb98913137d22d"
+const apiKey = "5515ebcbd2f549f6a436a7e1db2d25e0"
 
 
 /**
