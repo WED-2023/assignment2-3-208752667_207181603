@@ -51,7 +51,7 @@ router.post('/favorites', async (req, res) => {
 /**
  * This path returns the favorites recipes that were saved by the logged-in user
  */
-router.get('/favorites', async (req,res) => {
+router.get('/favorites/all', async (req,res) => {
   try{
     const username = req.session.username;
     const recipesID = await user_utils.getFavoriteRecipes(username);
@@ -89,7 +89,7 @@ router.get('/favorites/:id', async (req,res) => {
 });
 
 
-router.post('/recipes', async (req, res) => {
+router.post('/recipes/create', async (req, res) => {
   try {
     const username = req.session.username;
     const id = await user_utils.getNextRecipeID();
@@ -111,6 +111,18 @@ router.post('/recipes', async (req, res) => {
   }
 });
 
+router.get('/recipes', async (req, res) => {
+  try {
+    const username = req.session.username;
+    const recipesID = await user_utils.getUserRecipe(username);
+    const recipesPreview = await recipe_utils.getRecipesPreview(recipesID.map((recipe) => recipe.id));
+    res.status(200).send(recipesPreview);
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({ message: "Failed to get the user's recipes.", success: false });
+  }
+});
+
 router.get('/family', async (req, res) => {
   try {
     const username = req.session.username;
@@ -123,16 +135,5 @@ router.get('/family', async (req, res) => {
   }
 });
 
-router.get('/recipes', async (req, res) => {
-  try {
-    const username = req.session.username;
-    const recipesID = await user_utils.getUserRecipe(username);
-    const recipesPreview = await recipe_utils.getRecipesPreview(recipesID.map((recipe) => recipe.id));
-    res.status(200).send(recipesPreview);
-  } catch (error) {
-    console.log(error);
-    res.status(400).send({ message: "Failed to get the user's recipes.", success: false });
-  }
-});
 
 module.exports = router;

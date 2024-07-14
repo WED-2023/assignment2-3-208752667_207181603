@@ -1,7 +1,6 @@
 const axios = require("axios");
 const DButils = require("./DButils");
 const api_domain = "https://api.spoonacular.com/recipes";
-const apiKey = "5515ebcbd2f549f6a436a7e1db2d25e0"
 
 
 /**
@@ -14,11 +13,9 @@ async function getRecipeInformation(recipe_id) {
     return await axios.get(`${api_domain}/${recipe_id}/information`, {
         params: {
             includeNutrition: false,
-            // apiKey: process.env.spooncular_apiKey
-            apiKey: apiKey
+            apiKey: process.env.spooncular_apiKey
         }
     });
-    // TODO - ADD INSTRUCTIONS?
 }
 
 async function getAmountLikes(recipe_id) {
@@ -102,8 +99,7 @@ async function searchRecipe(recipeName, cuisine, diet, intolerance, number) {
             diet: diet,
             intolerances: intolerance,
             number: number,
-            // apiKey: process.env.spooncular_apiKey
-            apiKey: apiKey
+            apiKey: process.env.spooncular_apiKey
         }
     });
     return getRecipesPreview(response.data.results.map((element) => element.id));
@@ -114,8 +110,7 @@ async function getRandomRecipes(number) {
         const response = await axios.get(`${api_domain}/random`, {
             params: {
                 number: number,
-                // apiKey: process.env.spooncular_apiKey
-                apiKey: apiKey
+                apiKey: process.env.spooncular_apiKey
             }
         });
 
