@@ -1,124 +1,72 @@
-openapi: 3.0.0
+---
+openapi: 3.0.3
 info:
-  title: Recipes api
-  description: API for recipes project
-  version: 1.0.1
+  title: Recipe API
+  description: This is a simple API for managing and searching recipes.
+  contact:
+    email: you@your-company.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
 servers:
-# local:
-- url: "http://127.0.0.1:3000"
-# remote:
-# - url: "http://132.72.65.211"
-  description: SwaggerHub API Auto Mocking hey
+- url: https://virtserver.swaggerhub.com/ELBAZIS/WED-2023_assignment2-2-208752667_207181603/1.0.0
+  description: SwaggerHub API Auto Mocking
+security:
+- bearerAuth: []
 tags:
-- name: Auth
-  description: All authentication related routes
-- name: Users
-  description: All the user's personal app info
-- name: Recipes
-  description: All reciepes general info
+- name: Recipe Info
+  description: Operations related to recipe information management
+- name: Search Recipes
+  description: Operations to search for recipes based on various criteria
+- name: Random Recipes
+  description: Operations to get random recipes
+- name: User
+  description: Operations related to user management (future)
 paths:
-  /register:
+  /users/recipes/create:
     post:
       tags:
-      - Auth
-      summary: A new user from the client is added to the server
-      description: A JSON object contains all the details about the new user.
+      - Recipe Info
+      summary: Create a new recipe
+      description: Submit a new recipe to be added to the collection
       requestBody:
-        description: Inventory item to add
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/RecipeFullInfoCreate'
         required: true
       responses:
         "201":
-          description: A new user has been added
-        "400":
-          description: wrong input parameters
-  /login:
-    post:
-      tags:
-      - Auth
-      summary: Login an exist user
-      description: An exist user login to the system
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginScheme'
-        required: true
-      responses:
-        "200":
-          description: |
-            User was found in the DB and authenitcated successfully. The session ID is returned in a cookie named `session`.  You should include this cookie in subsequent requests
-          headers:
-            Set-Cookie:
-              style: simple
-              explode: false
-              schema:
-                type: string
-                example: session=87s97sdhgf279293f8w0e9
-        "401":
-          description: Authentication failed
-  /logout:
-    post:
-      tags:
-        - Auth
-      summary: logout a user from the system and delete his cookie
-      responses:
-        "200":
-          description: "the user has ben successfully logged out"
-  /users/favorites:
-    get:
-      tags:
-      - Users
-      summary: Return the favorite recipes that were saved by user
-      description: Get an array of recipes that were saved by a specific user
-      responses:
-        "200":
-          description: data about the user's favorites recipes returned
+          description: Recipe created
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/RecipePreview'
+                $ref: '#/components/schemas/inline_response_201_message_success'
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
         "401":
-          description: user is not authorized
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_401'
       security:
-      - cookieAuth: []
-    post:
-      tags:
-      - Users
-      summary: save recipe in the favorites list of a user
-      description: save recipe in the favorites list of a user
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                reciepeId:
-                  type: string
-                  description: reciepe's id which the user saved
-                  example: 716429
-      responses:
-        "200":
-          description: The Recipe successfully saved as favorite
-        "401":
-          description: user is not authorized
-      security:
-      - cookieAuth: []
+      - bearerAuth: []
   /recipes/{recipeId}:
     get:
       tags:
-      - Recipes
-      summary: Return preview details on recipe by his ID
-      description: Return preview details on recipe by his ID
+      - Recipe Info
+      summary: Get a recipe by ID
+      description: Retrieve the details of a recipe by its ID
       parameters:
       - name: recipeId
         in: path
-        description: recipe's id
+        description: The ID of the recipe
         required: true
         style: simple
         explode: false
@@ -126,105 +74,546 @@ paths:
           type: integer
       responses:
         "200":
-          description: data about the recipe
+          description: A single recipe
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RecipePreview'
-        "404":
-          description: recipeId is not exists
+                $ref: '#/components/schemas/inline_response_200_recipe_success'
+        "400":
+          description: Recipe not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+  /recipes/search:
+    get:
+      tags:
+      - Search Recipes
+      summary: Search recipes based on criteria
+      description: Retrieve recipes that match specified criteria
+      parameters:
+      - name: recipeName
+        in: query
+        description: Keywords to search for in recipe titles and descriptions
+        required: true
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: number
+        in: query
+        description: Maximum number of recipes to return
+        required: true
+        style: form
+        explode: true
+        schema:
+          maximum: 20
+          minimum: 1
+          type: integer
+      - name: diet
+        in: query
+        description: Dietary preferences
+        required: true
+        style: form
+        explode: true
+        schema:
+          minItems: 1
+          type: array
+          items:
+            type: string
+      - name: cuisine
+        in: query
+        description: Cuisine types
+        required: true
+        style: form
+        explode: true
+        schema:
+          minItems: 1
+          type: array
+          items:
+            type: string
+      - name: intolerance
+        in: query
+        description: Intolerances to exclude from recipes
+        required: true
+        style: form
+        explode: true
+        schema:
+          minItems: 1
+          type: array
+          items:
+            type: string
+      responses:
+        "200":
+          description: A list of recipes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_recipes'
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+  /recipes/random/{number}:
+    get:
+      tags:
+      - Random Recipes
+      summary: Get an array of random recipes
+      description: Retrieve an array of random recipes
+      parameters:
+      - name: number
+        in: path
+        description: Number of random recipes to retrieve
+        required: true
+        style: simple
+        explode: false
+        schema:
+          minimum: 1
+          type: integer
+      responses:
+        "200":
+          description: A list of recipes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_recipes'
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+  /Register:
+    post:
+      tags:
+      - User
+      summary: Register a new user
+      description: Register a new user by providing user details
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistration'
+        required: true
+      responses:
+        "200":
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_message_success'
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+        "409":
+          description: Username taken
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_409_message_success'
+  /Login:
+    post:
+      tags:
+      - User
+      summary: User signing in
+      description: Sign in a user by providing username and password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+        required: true
+      responses:
+        "200":
+          description: User signed in successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_message_success'
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_401'
+  /Logout:
+    post:
+      tags:
+      - User
+      summary: User logging out
+      description: Loging out the current user
+      responses:
+        "200":
+          description: User signed in successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_message_success'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_401'
+  /users/favorites/all:
+    get:
+      tags:
+      - User
+      summary: Get all favorite recipes for a user
+      description: Retrieve a list of all favorite recipes for the logged-in user
+      responses:
+        "200":
+          description: A list of favorite recipes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_recipes'
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_401'
+      security:
+      - bearerAuth: []
+  /users/favorites/{id}:
+    get:
+      tags:
+      - User
+      summary: Get if a recipe is a favorite for a user
+      description: Retrieve a boolean if a recipe is a favorite for a logged-in user
+      parameters:
+      - name: id
+        in: path
+        description: Number of random recipes to retrieve
+        required: true
+        style: simple
+        explode: false
+        schema:
+          minimum: 1
+          type: integer
+      responses:
+        "200":
+          description: boolean if a recipe is a favorite
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_inFavorites'
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_401'
+      security:
+      - bearerAuth: []
+  /users/favorites:
+    post:
+      tags:
+      - User
+      summary: Add/remove a recipe in favorites
+      description: Add a specific recipe to the logged-in user's list of favorites
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/id_favorites_body'
+        required: true
+      responses:
+        "200":
+          description: Recipe added to favorites
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_message_success'
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_401'
+      security:
+      - bearerAuth: []
+  /users/recipes:
+    get:
+      tags:
+      - User
+      summary: Get all recipes created by the user
+      description: Retrieve a list of all recipes created by the logged-in user
+      responses:
+        "200":
+          description: A list of recipes created by the user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_recipes'
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_401'
+      security:
+      - bearerAuth: []
+  /users/family:
+    get:
+      tags:
+      - User
+      summary: Get all the family recipes created by the user
+      description: Retrieve a list of all family recipes created by the logged-in user
+      responses:
+        "200":
+          description: A list of family recipes created by the user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_recipes'
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_400'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_401'
+      security:
+      - bearerAuth: []
 components:
   schemas:
-    User:
+    RecipeFullInfo:
       type: object
       properties:
-        username:
-          maxLength: 8
-          minLength: 3
+        id:
+          type: integer
+        image:
           type: string
-          description: username conatins between 3 to 8 letters only
-          example: my_name
-        firstname:
+        title:
           type: string
-          description: user's first name
-          example: my_first_name
-        lastname:
+        readyInMinutes:
+          type: integer
+        aggregateLikes:
+          type: integer
+        vegetarian:
+          type: boolean
+        vegan:
+          type: boolean
+        glutenFree:
+          type: boolean
+        familyRecipe:
+          type: boolean
+        summary:
           type: string
-          description: user's last name
-          example: my_last_name
-        country:
-          type: string
-          description: user's country
-          example: Israel
-        password:
-          maxLength: 10
-          minLength: 5
-          type: string
-          description: password conatins between 5 to 10 chars, at least one of them
-            is a number and a special char
-          format: password
-          example: my_name@12
-        email:
-          pattern: email
-          type: string
-          description: user's email
-          example: my_name12@gmail.com
-        # image-url:
-        #   pattern: URL
-        #   type: string
-        #   description: URL for the user's image
-        #   example: https://cloudinary.com/
-      description: Model containing user info
-    LoginScheme:
+        extendedIngredients:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipeFullInfo_ingredients'
+        analyzedInstructions:
+          type: array
+          items:
+            type: string
+        servings:
+          type: integer
+    RecipeFullInfoCreate:
       type: object
       properties:
-        username:
-          maxLength: 8
-          minLength: 3
+        id:
+          type: integer
+        image:
           type: string
-          description: username conatins letters only
-        password:
-          maxLength: 10
-          minLength: 5
-          description: password conatins at least one number and one special char
-          format: password
-      example:
-        username: my_name
-        password: my_name@12
+        title:
+          type: string
+        readyInMinutes:
+          type: integer
+        vegetarian:
+          type: boolean
+        vegan:
+          type: boolean
+        glutenFree:
+          type: boolean
+        familyRecipe:
+          type: boolean
+        summary:
+          type: string
+        extendedIngredients:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipeFullInfo_ingredients'
+        analyzedInstructions:
+          type: array
+          items:
+            type: string
+        servings:
+          type: integer
     RecipePreview:
       type: object
       properties:
         id:
           type: integer
-          description: recipe identifier
-          example: 102
-        title:
-          type: string
-          description: recipe name
-          example: Simple Macaroni and Cheese
         image:
           type: string
-          description: recipe image
-          format: URL
-          example: https://spoonacular.com/recipeimages/655455-566x370.jpg
+        title:
+          type: string
         readyInMinutes:
           type: integer
-          description: the time takes to make this recipe
-          example: 45
-        popularity:
+        servings:
           type: integer
-          description: how many likes got this recipe
-          example: 5987
-        vegetarian:
-          type: boolean
-          description: indication if the recipe is vegetarian
-          example: false
+        aggregateLikes:
+          type: integer
         vegan:
           type: boolean
-          description: indication if the recipe is vegan
-          example: false
+        vegetarian:
+          type: boolean
         glutenFree:
           type: boolean
-          description: indication if the recipe is gluten free
-          example: false
-  
+        summary:
+          type: string
+        extendedIngredients:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipeFullInfo_ingredients'
+        analyzedInstructions:
+          type: array
+          items:
+            type: string
+    UserRegistration:
+      required:
+      - confirmPassword
+      - email
+      - password
+      - username
+      type: object
+      properties:
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        country:
+          type: string
+        password:
+          type: string
+          format: password
+        email:
+          type: string
+          format: email
+    UserLogin:
+      required:
+      - password
+      - username
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+    inline_response_200_recipes:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipePreview'
+    inline_response_200_recipe_success:
+      type: object
+      properties:
+        recipe:
+          $ref: '#/components/schemas/RecipeFullInfo'
+        success:
+          type: boolean
+    inline_response_200_message_success:
+      type: object
+      properties:
+        message:
+          type: string
+        success:
+          type: boolean
+    inline_response_200_inFavorites:
+      type: object
+      properties:
+        inFavorite:
+          type: boolean
+    inline_response_201_message_success:
+      type: object
+      properties:
+        message:
+          type: string
+        success:
+          type: boolean
+    inline_response_400:
+      type: object
+      properties:
+        message:
+          type: string
+    inline_response_401:
+      type: object
+      properties:
+        message:
+          type: string
+    inline_response_409_message_success:
+      type: object
+      properties:
+        message:
+          type: string
+        success:
+          type: boolean
+    id_favorites_body:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The ID of the recipe to add/remove to favorites
+    RecipeFullInfo_ingredients:
+      type: object
+      properties:
+        quantity:
+          type: number
+        unit:
+          type: string
+        name:
+          type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
