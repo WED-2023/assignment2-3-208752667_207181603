@@ -302,12 +302,11 @@ paths:
       parameters:
       - name: id
         in: path
-        description: Number of random recipes to retrieve
+        description: id of a recipe
         required: true
         style: simple
         explode: false
         schema:
-          minimum: 1
           type: integer
       responses:
         "200":
